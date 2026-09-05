@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harborview Incident Report — Ransomware Case Study</title>
+    <style>
+        :root {
+            --bg: #0f1115;
+            --card: #161b22;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --accent: #58a6ff;
+            --red: #f85149;
+            --orange: #d2991d;
+            --green: #3fb950;
+            --border: #30363d;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .subtitle { color: var(--muted); font-size: 1rem; margin-bottom: 2rem; }
+        h2 { font-size: 1.3rem; margin-top: 2rem; margin-bottom: 1rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        h3 { font-size: 1.1rem; margin-top: 1.5rem; color: var(--text); }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+        .card h3 { margin-top: 0; }
+        .meta { color: var(--muted); font-size: 0.9rem; }
+        .red { color: var(--red); }
+        .orange { color: var(--orange); }
+        .green { color: var(--green); }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { text-align: left; padding: 0.6rem; border-bottom: 1px solid var(--border); }
+        th { color: var(--muted); font-weight: 500; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        tr:last-child td { border-bottom: none; }
+        code, pre {
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.2rem 0.4rem;
+            font-family: 'SF Mono', Monaco, Inconsolata, 'Fira Code', monospace;
+            font-size: 0.85em;
+        }
+        pre { padding: 1rem; overflow-x: auto; line-height: 1.5; }
+        ul { margin-left: 1.25rem; margin-top: 0.5rem; }
+        li { margin-bottom: 0.4rem; }
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .badge-red { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+        .badge-orange { background: rgba(210,153,29,0.15); color: var(--orange); border: 1px solid rgba(210,153,29,0.3); }
+        .badge-green { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+        .badge-blue { background: rgba(88,166,255,0.15); color: var(--accent); border: 1px solid rgba(88,166,255,0.3); }
+        .timeline { position: relative; padding-left: 1.5rem; }
+        .timeline::before { content: ''; position: absolute; left: 0.4rem; top: 0.3rem; bottom: 0.3rem; width: 2px; background: var(--border); }
+        .timeline-item { position: relative; margin-bottom: 1rem; }
+        .timeline-item::before { content: ''; position: absolute; left: -1.1rem; top: 0.4rem; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); }
+        .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Harborview Accounting & Tax Services</h1>
+        <p class="subtitle">Incident Response Report — Ransomware Compromise via Service Account Credential Theft<br>
+        <span class="meta">Classification: Internal Use | Date: 2026-01-09 | Analyst: Hermes Agent</span></p>
+
+        <div class="card">
+            <h3>Executive Summary</h3>
+            <p>A ransomware attack encrypted 4,892 files on the firm's primary file server. The attacker gained access using credentials for a local service account (<code>svc-techconnect</code>) that were stored in plaintext on a stolen IT technician laptop. The attack included data exfiltration (double extortion). All evidence points to a single root cause: plaintext credential storage on a portable device that left the premises. No additional lateral movement was detected. Windows Defender did not detect the custom ransomware payload.</p>
+        </div>
+
+        <h2>Initial Evidence</h2>
+        <div class="card">
+            <h3>File Server — Sunday 02:47 AM</h3>
+            <ul>
+                <li>4,892 files renamed with <code>.enc</code> extension on <code>S:\ClientData</code></li>
+                <li>Ransom note <code>README.txt</code> dropped in <code>S:\</code> root demanding 3 BTC</li>
+                <li>Affected types: <code>.pdf</code>, <code>.xlsx</code>, <code>.docx</code>, <code>.qbw</code>, <code>.tax</code></li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3>SIEM Alerts — 02:47 to 03:06 AM</h3>
+            <table>
+                <tr><th>Time</th><th>Alert</th><th>Source</th></tr>
+                <tr><td>02:47:03</td><td>Mass file modification — 4,892 files renamed</td><td>File server SIEM</td></tr>
+                <tr><td>02:47:18</td><td>Service account login from external IP <code>185.234.72.45</code></td><td>Windows Event Log</td></tr>
+                <tr><td>02:48:42</td><td>PowerShell execution: <code>TechConnect_Update.ps1</code></td><td>Sysmon Event ID 1</td></tr>
+                <tr><td>02:52:11</td><td>Shadow copy deletion: <code>vssadmin.exe Delete Shadows /All /Quiet</code></td><td>Windows Event Log</td></tr>
+                <tr><td>03:01:44</td><td>500MB outbound upload to <code>185.234.72.45:443</code></td><td>Firewall log</td></tr>
+                <tr><td>03:05:22</td><td>Scheduled task "TechConnect Health Check" deleted</td><td>Windows Event Log</td></tr>
+                <tr><td>03:06:01</td><td>PowerShell script self-deleted from <code>C:\Windows\Temp\</code></td><td>Sysmon Event ID 1</td></tr>
+            </table>
+        </div>
+        <div class="card">
+            <h3>Context</h3>
+            <ul>
+                <li><code>svc-techconnect</code> is a local admin account used by the TechConnect Pro RMM agent</li>
+                <li>Account had never logged in from an external IP before</li>
+                <li>Password was changed 3 weeks prior by the IT provider</li>
+                <li>Windows Defender ATP: <strong>no malicious detections</strong> during the incident window</li>
+                <li>External IP <code>185.234.72.45</code> resolves to DigitalOcean (ASN 14061)</li>
+            </ul>
+        </div>
+
+        <h2>Investigation Timeline</h2>
+        <div class="timeline">
+            <div class="timeline-item"><strong>Friday 14:22</strong> — IT technician "Mike" creates <code>svc-techconnect_password.txt</code> on his laptop desktop containing the current service account password.</div>
+            <div class="timeline-item"><strong>Friday 16:42</strong> — Mike downloads a legitimate TechConnect Pro agent update from the vendor website.</div>
+            <div class="timeline-item"><strong>Friday 17:00–17:30</strong> — Mike's company laptop is stolen from his vehicle. He does not report the theft immediately.</div>
+            <div class="timeline-item"><strong>Friday 20:15</strong> — Attacker accesses the stolen laptop remotely via TeamViewer (pre-installed, auto-starting). 3.5-hour session.</div>
+            <div class="timeline-item"><strong>Saturday 02:30</strong> — Second TeamViewer session from same external IP (30 minutes).</div>
+            <div class="timeline-item"><strong>Saturday 03:00</strong> — Attacker shuts down the laptop.</div>
+            <div class="timeline-item"><strong>Sunday 02:47</strong> — Attacker logs into FILE-SRV-01 using the extracted <code>svc-techconnect</code> credentials from DigitalOcean IP <code>185.234.72.45</code>.</div>
+            <div class="timeline-item"><strong>Sunday 02:48</strong> — PowerShell ransomware script executed. Mass file renaming begins.</div>
+            <div class="timeline-item"><strong>Sunday 02:52</strong> — Shadow copies deleted to prevent recovery.</div>
+            <div class="timeline-item"><strong>Sunday 03:01</strong> — 500MB of client data exfiltrated to Tor hidden service <code>harborviewdecrypt.onion</code> (confirmed via TLS-inspecting proxy).</div>
+            <div class="timeline-item"><strong>Sunday 03:06</strong> — Attacker self-deletes the PowerShell script and exits.</div>
+            <div class="timeline-item"><strong>Monday 08:23</strong> — Office manager discovers the encryption.</div>
+        </div>
+
+        <h2>Hypothesis Analysis</h2>
+        <div class="card">
+            <table>
+                <tr><th>Hypothesis</th><th>Initial Confidence</th><th>Outcome</th></tr>
+                <tr><td>Ransomware via compromised RMM service account</td><td><span class="badge badge-orange">85%</span></td><td><span class="badge badge-green">CONFIRMED</span></td></tr>
+                <tr><td>Insider threat — disgruntled employee</td><td><span class="badge badge-blue">10%</span></td><td>Ruled out — no insider access pattern</td></tr>
+                <tr><td>Compromised RMM / supply chain attack</td><td><span class="badge badge-blue">5%</span></td><td>Ruled out — RMM logs clean</td></tr>
+                <tr><td>False positive / misconfigured backup script</td><td><span class="badge badge-red">&lt;1%</span></td><td>Ruled out — script was definitively malicious</td></tr>
+            </table>
+        </div>
+
+        <h2>Root Cause</h2>
+        <div class="card">
+            <p>The <code>svc-techconnect</code> password was stored in a plaintext file (<code>svc-techconnect_password.txt</code>) on the IT technician's laptop. The laptop was stolen from an unattended vehicle. The attacker accessed it remotely via TeamViewer, extracted the credentials, and used them to log directly into the file server. No lateral movement was required because the service account had local administrator privileges on the primary file server.</p>
+        </div>
+
+        <h2>Key Findings</h2>
+        <div class="card">
+            <ul>
+                <li><strong>Double extortion confirmed:</strong> 500MB of client data was exfiltrated before encryption. The attacker can leak data even if backups are restored.</li>
+                <li><strong>Custom ransomware payload:</strong> Not a known strain. Written in PowerShell, self-deleting, executed in memory. Windows Defender did not detect it.</li>
+                <li><strong>SIEM blind spots:</strong> Mass-file-modification threshold was set to 5,000 files; attacker stopped at 4,892. Shadow-copy-deletion alerts were downgraded for service accounts.</li>
+                <li><strong>No lateral movement:</strong> Attacker went directly for the file server using compromised credentials.</li>
+                <li><strong>RMM not compromised:</strong> TechConnect Pro cloud console showed no anomalous activity. The attacker operated entirely outside the RMM channel.</li>
+                <li><strong>TLS inspection saved evidence:</strong> The company's TLS-inspecting proxy captured the Tor hidden service certificate and confirmed exfiltration to <code>harborviewdecrypt.onion</code>.</li>
+            </ul>
+        </div>
+
+        <h2>Remediation</h2>
+        <div class="card">
+            <table>
+                <tr><th>Priority</th><th>Action</th><th>Timeline</th></tr>
+                <tr><td>1</td><td>Isolate FILE-SRV-01; preserve forensic images</td><td>Immediate</td></tr>
+                <tr><td>2</td><td>Reset ALL service account passwords; enable LAPS</td><td>Immediate</td></tr>
+                <tr><td>3</td><td>Revoke all active sessions; force re-authentication</td><td>Immediate</td></tr>
+                <tr><td>4</td><td>Block attacker IPs and DigitalOcean ranges at firewall</td><td>Immediate</td></tr>
+                <tr><td>5</td><td>Enable MFA on all service accounts and RMM tools</td><td>24 hours</td></tr>
+                <tr><td>6</td><td>Restore from verified clean backups</td><td>24–48 hours</td></tr>
+                <tr><td>7</td><td>File police report; notify cyber insurance carrier</td><td>24 hours</td></tr>
+                <tr><td>8</td><td>Assess client data breach notification obligations</td><td>Per legal counsel</td></tr>
+                <tr><td>9</td><td>Deploy EDR on file server (Defender for Endpoint or equivalent)</td><td>1 week</td></tr>
+                <tr><td>10</td><td>Tune SIEM: lower mass-modification threshold to 1,000 files; alert on shadow copy deletion regardless of account</td><td>1 week</td></tr>
+            </table>
+        </div>
+
+        <h2>Lessons Learned</h2>
+        <div class="card">
+            <ul>
+                <li><strong>Never store credentials in plaintext files</strong> on portable devices. Use a password manager with MFA.</li>
+                <li><strong>Report device theft immediately.</strong> The 3-hour delay gave the attacker a 60-hour window.</li>
+                <li><strong>SIEM rules must not be account-aware for destructive actions.</strong> Shadow copy deletion by a service account is still highly suspicious.</li>
+                <li><strong>RMM tools create a single point of failure.</strong> Compromise of the service account exposes the entire managed fleet.</li>
+                <li><strong>Double extortion is now standard.</strong> Exfiltration occurred before encryption. Data breach notification is required regardless of backup restoration.</li>
+                <li><strong>PowerShell ransomware is hard to detect</strong> without AMSI enforcement and EDR. Defender alone is insufficient for server workloads.</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            Generated by Hermes Agent | Case study for educational purposes | All names, IPs, and identifiers are fictitious
+        </div>
+    </div>
+</body>
+</html>
