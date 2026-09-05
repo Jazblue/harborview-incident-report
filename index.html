@@ -11,14 +11,14 @@
     <link rel="canonical" href="https://jazblue.github.io/harborview-incident-report/">
 
     <script>
-        (function() {
+        document.addEventListener('DOMContentLoaded', function() {
             var key = 'harborview_visits';
             var count = parseInt(localStorage.getItem(key) || '0', 10);
             count++;
             localStorage.setItem(key, count);
             var el = document.getElementById('visit-counter');
             if (el) el.textContent = count;
-        })();
+        });
     </script>
 
     <!-- Open Graph / Facebook -->
