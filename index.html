@@ -15,10 +15,12 @@
             --orange: #d2991d;
             --green: #3fb950;
             --border: #30363d;
+            --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            --mono: 'SF Mono', Monaco, Inconsolata, 'Fira Code', monospace;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            font-family: var(--font);
             background: var(--bg);
             color: var(--text);
             line-height: 1.6;
@@ -28,7 +30,7 @@
         h1 { font-size: 2rem; margin-bottom: 0.5rem; }
         .subtitle { color: var(--muted); font-size: 1rem; margin-bottom: 2rem; }
         h2 { font-size: 1.3rem; margin-top: 2rem; margin-bottom: 1rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
-        h3 { font-size: 1.1rem; margin-top: 1.5rem; color: var(--text); }
+        h3 { font-size: 1.1rem; margin-top: 1.5rem; margin-bottom: 0.75rem; }
         .card {
             background: var(--card);
             border: 1px solid var(--border);
@@ -50,7 +52,7 @@
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 0.2rem 0.4rem;
-            font-family: 'SF Mono', Monaco, Inconsolata, 'Fira Code', monospace;
+            font-family: var(--mono);
             font-size: 0.85em;
         }
         pre { padding: 1rem; overflow-x: auto; line-height: 1.5; }
@@ -74,6 +76,7 @@
         .timeline-item { position: relative; margin-bottom: 1rem; }
         .timeline-item::before { content: ''; position: absolute; left: -1.1rem; top: 0.4rem; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); }
         .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem; }
+        .hypothesis-table td:first-child { font-weight: 500; }
     </style>
 </head>
 <body>
@@ -110,7 +113,7 @@
             </table>
         </div>
         <div class="card">
-            <h3>Context</h3>
+            <h3>Environment Context</h3>
             <ul>
                 <li><code>svc-techconnect</code> is a local admin account used by the TechConnect Pro RMM agent</li>
                 <li>Account had never logged in from an external IP before</li>
@@ -125,7 +128,7 @@
             <div class="timeline-item"><strong>Friday 14:22</strong> — IT technician "Mike" creates <code>svc-techconnect_password.txt</code> on his laptop desktop containing the current service account password.</div>
             <div class="timeline-item"><strong>Friday 16:42</strong> — Mike downloads a legitimate TechConnect Pro agent update from the vendor website.</div>
             <div class="timeline-item"><strong>Friday 17:00–17:30</strong> — Mike's company laptop is stolen from his vehicle. He does not report the theft immediately.</div>
-            <div class="timeline-item"><strong>Friday 20:15</strong> — Attacker accesses the stolen laptop remotely via TeamViewer (pre-installed, auto-starting). 3.5-hour session.</div>
+            <div class="timeline-item"><strong>Friday 20:15</strong> — Attacker accesses the stolen laptop remotely via TeamViewer (pre-installed, auto-starting). 3.5-hour session from IP <code>185.234.72.45</code>.</div>
             <div class="timeline-item"><strong>Saturday 02:30</strong> — Second TeamViewer session from same external IP (30 minutes).</div>
             <div class="timeline-item"><strong>Saturday 03:00</strong> — Attacker shuts down the laptop.</div>
             <div class="timeline-item"><strong>Sunday 02:47</strong> — Attacker logs into FILE-SRV-01 using the extracted <code>svc-techconnect</code> credentials from DigitalOcean IP <code>185.234.72.45</code>.</div>
@@ -138,7 +141,7 @@
 
         <h2>Hypothesis Analysis</h2>
         <div class="card">
-            <table>
+            <table class="hypothesis-table">
                 <tr><th>Hypothesis</th><th>Initial Confidence</th><th>Outcome</th></tr>
                 <tr><td>Ransomware via compromised RMM service account</td><td><span class="badge badge-orange">85%</span></td><td><span class="badge badge-green">CONFIRMED</span></td></tr>
                 <tr><td>Insider threat — disgruntled employee</td><td><span class="badge badge-blue">10%</span></td><td>Ruled out — no insider access pattern</td></tr>
@@ -147,9 +150,16 @@
             </table>
         </div>
 
-        <h2>Root Cause</h2>
+        <h2>Root Cause Chain</h2>
         <div class="card">
-            <p>The <code>svc-techconnect</code> password was stored in a plaintext file (<code>svc-techconnect_password.txt</code>) on the IT technician's laptop. The laptop was stolen from an unattended vehicle. The attacker accessed it remotely via TeamViewer, extracted the credentials, and used them to log directly into the file server. No lateral movement was required because the service account had local administrator privileges on the primary file server.</p>
+            <ol>
+                <li><strong>Initial Access:</strong> IT provider's laptop was stolen from a vehicle on Friday afternoon. The laptop was left logged in with the <code>svc-techconnect</code> password saved in a plaintext file on the desktop.</li>
+                <li><strong>Credential Theft:</strong> Attacker accessed the stolen laptop remotely via TeamViewer (pre-installed and auto-starting), located the password file, and extracted the current credentials for <code>svc-techconnect</code>.</li>
+                <li><strong>Lateral Movement:</strong> Attacker used the credentials to log directly into FILE-SRV-01 from a DigitalOcean VPN/proxy at 02:47 AM Sunday.</li>
+                <li><strong>Execution:</strong> Attacker manually executed a PowerShell ransomware script (<code>TechConnect_Update.ps1</code>) that renamed 4,892 files, dropped a ransom note, deleted all Shadow Copies, and self-deleted.</li>
+                <li><strong>Exfiltration:</strong> Attacker compressed and uploaded 500MB of sensitive client data to a Tor hidden service before encrypting. Double extortion.</li>
+                <li><strong>Cover Tracks:</strong> Deleted the PowerShell script and the scheduled task used as a persistence mechanism.</li>
+            </ol>
         </div>
 
         <h2>Key Findings</h2>
@@ -161,10 +171,11 @@
                 <li><strong>No lateral movement:</strong> Attacker went directly for the file server using compromised credentials.</li>
                 <li><strong>RMM not compromised:</strong> TechConnect Pro cloud console showed no anomalous activity. The attacker operated entirely outside the RMM channel.</li>
                 <li><strong>TLS inspection saved evidence:</strong> The company's TLS-inspecting proxy captured the Tor hidden service certificate and confirmed exfiltration to <code>harborviewdecrypt.onion</code>.</li>
+                <li><strong>Antivirus evasion:</strong> The custom PowerShell script ran in memory, used <code>ErrorActionPreference SilentlyContinue</code>, and self-deleted. Windows Defender had no signatures for this payload.</li>
             </ul>
         </div>
 
-        <h2>Remediation</h2>
+        <h2>Remediation Steps</h2>
         <div class="card">
             <table>
                 <tr><th>Priority</th><th>Action</th><th>Timeline</th></tr>
@@ -190,6 +201,7 @@
                 <li><strong>RMM tools create a single point of failure.</strong> Compromise of the service account exposes the entire managed fleet.</li>
                 <li><strong>Double extortion is now standard.</strong> Exfiltration occurred before encryption. Data breach notification is required regardless of backup restoration.</li>
                 <li><strong>PowerShell ransomware is hard to detect</strong> without AMSI enforcement and EDR. Defender alone is insufficient for server workloads.</li>
+                <li><strong>Service accounts should not be interactive.</strong> <code>svc-techconnect</code> was used for remote interactive logins, which is not its intended purpose. Implement Just Enough Administration (JEA) and Privileged Access Management (PAM).</li>
             </ul>
         </div>
 
