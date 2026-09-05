@@ -10,6 +10,22 @@
     <meta name="date" content="2026-01-09">
     <link rel="canonical" href="https://jazblue.github.io/harborview-incident-report/">
 
+    <script>
+        (function() {
+            const start = Date.now();
+            const el = document.getElementById('visit-timer');
+            function tick() {
+                const s = Math.floor((Date.now() - start) / 1000);
+                const h = String(Math.floor(s / 3600)).padStart(2, '0');
+                const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+                const sec = String(s % 60).padStart(2, '0');
+                if (el) el.textContent = h + ':' + m + ':' + sec;
+                requestAnimationFrame(tick);
+            }
+            tick();
+        })();
+    </script>
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://jazblue.github.io/harborview-incident-report/">
@@ -136,7 +152,8 @@
             <h1>Harborview Accounting & Tax Services</h1>
             <p class="subtitle">Incident Response Report — Ransomware Compromise via Service Account Credential Theft<br>
             <span class="meta">Classification: Internal Use | Date: 2026-01-09 | Created by: Hermes Agent (Nous Research)<br>
-            Platform: Hermes Desktop | Prompt: "Construct a realistic hypothetical scenario where a small business believes it has been hacked. Give me only the initial evidence. Investigate the incident step by step, maintaining a hypothesis list and confidence score. Do not reveal the final explanation until you've worked through the evidence."</span></p>
+            Platform: Hermes Desktop | Prompt: "Construct a realistic hypothetical scenario where a small business believes it has been hacked. Give me only the initial evidence. Investigate the incident step by step, maintaining a hypothesis list and confidence score. Do not reveal the final explanation until you've worked through the evidence."<br>
+            <strong>Page view timer:</strong> <span id="visit-timer">00:00:00</span></span></p>
         </header>
 
         <nav class="toc" aria-label="Table of contents">
