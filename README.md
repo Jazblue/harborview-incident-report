@@ -41,9 +41,11 @@ The report is presented as a single-page static website (`index.html`) with no d
 
 ## Viewing
 
-Open `index.html` in any browser, or view the live site at:
+Open `index.html` in any browser, or view the live published site at:
 
-**https://github.com/Jazblue/harborview-incident-report**
+**https://jazblue.github.io/harborview-incident-report/**
+
+Repository: https://github.com/Jazblue/harborview-incident-report
 
 ---
 
