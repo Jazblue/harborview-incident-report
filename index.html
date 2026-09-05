@@ -12,17 +12,12 @@
 
     <script>
         (function() {
-            const start = Date.now();
-            const el = document.getElementById('visit-timer');
-            function tick() {
-                const s = Math.floor((Date.now() - start) / 1000);
-                const h = String(Math.floor(s / 3600)).padStart(2, '0');
-                const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
-                const sec = String(s % 60).padStart(2, '0');
-                if (el) el.textContent = h + ':' + m + ':' + sec;
-                requestAnimationFrame(tick);
-            }
-            tick();
+            var key = 'harborview_visits';
+            var count = parseInt(localStorage.getItem(key) || '0', 10);
+            count++;
+            localStorage.setItem(key, count);
+            var el = document.getElementById('visit-counter');
+            if (el) el.textContent = count;
         })();
     </script>
 
@@ -153,7 +148,7 @@
             <p class="subtitle">Incident Response Report — Ransomware Compromise via Service Account Credential Theft<br>
             <span class="meta">Classification: Internal Use | Date: 2026-01-09 | Created by: Hermes Agent (Nous Research)<br>
             Platform: Hermes Desktop | Prompt: "Construct a realistic hypothetical scenario where a small business believes it has been hacked. Give me only the initial evidence. Investigate the incident step by step, maintaining a hypothesis list and confidence score. Do not reveal the final explanation until you've worked through the evidence."<br>
-            <strong>Page view timer:</strong> <span id="visit-timer">00:00:00</span></span></p>
+            <strong>Page visits (this browser):</strong> <span id="visit-counter">0</span></span></p>
         </header>
 
         <nav class="toc" aria-label="Table of contents">
